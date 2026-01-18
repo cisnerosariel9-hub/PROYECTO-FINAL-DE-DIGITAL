@@ -1,0 +1,60 @@
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
+#define senHumo 34 
+#define buzzer 18
+#define ledrojo 12
+#define ledverde 2
+
+int valor = 0; 
+const int umbral = 1000;  
+
+// Configuración de red
+const char* ssid = "NETLIFE-uiojjquevedoc2";
+const char* password = "2100351143";
+
+// Configuración de Telegram
+#define BOTtoken "8260067269:AAHMC0KCn4eQKhySU-F5r7VC4lHTMdNY1rU"
+#define CHAT_ID "7187888352"
+
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOTtoken, client);
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(senHumo, INPUT); // Configurado como entrada externa Pull-Down
+  pinMode(buzzer, OUTPUT);
+
+  // Conexión Wi-Fi
+  WiFi.begin(ssid, password);
+  client.setInsecure(); // Necesario para algunas versiones de la librería
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi conectado");
+}
+
+void loop() {
+  valor = analogRead(senHumo); 
+  Serial.println(valor);
+
+  if(valor >=  umbral){  
+    digitalWrite(buzzer, HIGH); 
+    digitalWrite(ledrojo, HIGH);
+    if (bot.sendMessage(CHAT_ID, "ALARMA DE INCENDIOS", "")) {
+      Serial.println("ALARMA DE INCENDIOS");
+    }
+    delay(500);
+  }
+
+  if(valor < umbral){ 
+    digitalWrite(buzzer, LOW); 
+    digitalWrite(ledverde, HIGH);
+    if (bot.sendMessage(CHAT_ID, "SENSOR DENTRO DEL RANGO NORMAL", "")) {
+      Serial.println("SENSOR DENTRO DEL RANGO NORMAL");
+    }
+    delay(500);
+  }
+}
